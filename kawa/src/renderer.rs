@@ -77,14 +77,14 @@ impl Renderer {
         gl.use_program(Some(program));
 
         let uniforms = Uniforms {
-            texture: gl.get_uniform_location(program, "Texture").unwrap(),
-            projection_matrix: gl.get_uniform_location(program, "ProjMatx").unwrap(),
+            texture: gl.get_uniform_location(program, "u_texture").unwrap(),
+            projection_matrix: gl.get_uniform_location(program, "u_prj_matrix").unwrap(),
         };
 
         let attribs = Attribs {
-            position: gl.get_attrib_location(program, "Position").unwrap(),
-            uv: gl.get_attrib_location(program, "UV").unwrap(),
-            color: gl.get_attrib_location(program, "Color").unwrap(),
+            position: gl.get_attrib_location(program, "position").unwrap(),
+            uv: gl.get_attrib_location(program, "uv").unwrap(),
+            color: gl.get_attrib_location(program, "color").unwrap(),
         };
 
         let vbo = gl.create_buffer().unwrap();

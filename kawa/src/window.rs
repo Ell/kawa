@@ -1,5 +1,5 @@
 use anyhow::Result;
-use glow::{HasContext, COLOR_BUFFER_BIT, TRIANGLES};
+use glow::HasContext;
 use glutin::{
     dpi::LogicalSize,
     event::{Event, WindowEvent},
@@ -7,14 +7,16 @@ use glutin::{
     window::WindowBuilder,
     ContextBuilder, PossiblyCurrent, WindowedContext,
 };
+use imgui_winit_support::WinitPlatform;
 
-use crate::renderer::{self, Renderer};
+use crate::renderer::Renderer;
 
 pub struct Window {
     renderer: Renderer,
     gl_context: glow::Context,
     window_context: WindowedContext<PossiblyCurrent>,
     event_loop: EventLoop<()>,
+    platform: WinitPlatform,
     imgui: imgui::Context,
 }
 
@@ -41,12 +43,23 @@ impl Window {
         let mut imgui = imgui::Context::create();
         let renderer = Renderer::init(&gl_context, &mut imgui).unwrap();
 
+        let mut platform = WinitPlatform::init(&mut imgui);
+        {
+            let window = window_context.window();
+            platform.attach_window(
+                imgui.io_mut(),
+                window,
+                imgui_winit_support::HiDpiMode::Rounded,
+            );
+        }
+
         Ok(Window {
             renderer,
             gl_context,
             window_context,
             event_loop,
             imgui,
+            platform,
         })
     }
 
@@ -55,30 +68,53 @@ impl Window {
         let window_context = self.window_context;
         let event_loop = self.event_loop;
         let renderer = self.renderer;
+        let mut platform = self.platform;
         let mut imgui = self.imgui;
+
+        let mut last_frame = std::time::Instant::now();
 
         event_loop.run(move |event, _, control_flow| {
             *control_flow = ControlFlow::Wait;
 
             match event {
+                Event::NewEvents(_) => {
+                    let now = std::time::Instant::now();
+                    imgui.io_mut().update_delta_time(now - last_frame);
+                    last_frame = now;
+                }
                 Event::LoopDestroyed => {
                     return;
                 }
                 Event::MainEventsCleared => {
-                    window_context.window().request_redraw();
+                    let window = window_context.window();
+
+                    platform
+                        .prepare_frame(imgui.io_mut(), window)
+                        .expect("failed to prepare frame");
+
+                    window.request_redraw();
                 }
                 Event::RedrawRequested(_) => unsafe {
-                    gl_context.clear(COLOR_BUFFER_BIT);
-                    gl_context.draw_arrays(TRIANGLES, 0, 6);
+                    gl_context.clear(glow::COLOR_BUFFER_BIT);
+                    gl_context.draw_arrays(glow::TRIANGLES, 0, 6);
+
+                    let window = window_context.window();
 
                     {
                         let frame = imgui.frame();
-                        let display_size = frame.io().display_size;
-                        let fb_scale = frame.io().display_framebuffer_scale;
 
+                        let [width, height] = frame.io().display_size;
+                        let [fb_width, fb_height] = frame.io().display_framebuffer_scale;
+
+                        let mut run = true;
+                        frame.show_demo_window(&mut run);
+
+                        if !run {
+                            *control_flow = ControlFlow::Exit;
+                        }
+
+                        platform.prepare_render(&frame, window);
                         let draw_data = frame.render();
-                        let [width, height] = display_size;
-                        let [fb_width, fb_height] = fb_scale;
 
                         renderer
                             .render_ui(
@@ -102,7 +138,11 @@ impl Window {
                     }
                     _ => (),
                 },
-                _ => (),
+                event => {
+                    let window = window_context.window();
+
+                    platform.handle_event(imgui.io_mut(), window, &event);
+                }
             }
         });
     }

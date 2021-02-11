@@ -1,10 +1,12 @@
 #version 410
 
-precision mediump float;
+uniform sampler2D u_texture;
 
-in vec2 vert;
-out vec4 color;
+in vec2 frag_uv;
+in vec4 frag_color;
+
+out vec4 out_color;
 
 void main() {
-  color = vec4(vert, 0.5, 1.0);
+  out_color = frag_color * texture(u_texture, frag_uv.st);
 }

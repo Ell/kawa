@@ -569,6 +569,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "imgui-winit-support"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d632440e05c964e8a7f00f2659c4f71c97897d8c38a77a0c2dc1f3fe8d632208"
+dependencies = [
+ "imgui",
+ "winit",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -609,6 +619,7 @@ dependencies = [
  "glow",
  "glutin",
  "imgui",
+ "imgui-winit-support",
  "libmpv",
 ]
 
