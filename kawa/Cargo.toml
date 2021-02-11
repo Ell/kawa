@@ -1,0 +1,12 @@
+[package]
+name = "kawa"
+version = "0.1.0"
+authors = ["Ell <hey@ell.dev>"]
+edition = "2018"
+
+[dependencies]
+libmpv = { path = "../libmpv", version = "0.1.0" }
+glutin = "0.26.0"
+anyhow = "1.0.38"
+glow = "0.7.2"
+imgui = "0.7.0"

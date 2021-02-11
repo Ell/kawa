@@ -1,0 +1,12 @@
+[package]
+name = "libmpv"
+version = "0.1.0"
+authors = ["Ell <alan@cattes.us>"]
+edition = "2018"
+
+[lib]
+doctest = false
+
+[dependencies]
+libmpv-sys = { path = "../libmpv-sys", version = "0.1.0" }
+

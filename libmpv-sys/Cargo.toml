@@ -1,0 +1,11 @@
+[package]
+name = "libmpv-sys"
+version = "0.1.0"
+authors = ["Ell <alan@cattes.us>"]
+edition = "2018"
+
+[lib]
+doctest = false
+
+[build-dependencies]
+bindgen = "0.56.0"
