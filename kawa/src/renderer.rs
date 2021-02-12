@@ -138,8 +138,6 @@ impl Renderer {
 
         gl.bind_texture(glow::TEXTURE_2D, Some(current_texture as u32));
 
-        gl.clear_color(0.0, 0.0, 0.0, 1.0);
-
         Ok(Self {
             program,
             vbo,
@@ -228,7 +226,7 @@ impl Renderer {
         );
 
         for draw_list in draw_data.draw_lists() {
-            let vtx_buffer: &[u8] = draw_list.transmute_vtx_buffer();
+            let vtx_buffer = draw_list.vtx_buffer();
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(self.vbo));
             gl.buffer_data_u8_slice(
                 glow::ARRAY_BUFFER,

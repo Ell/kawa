@@ -7,6 +7,7 @@ use glutin::{
     window::WindowBuilder,
     ContextBuilder, PossiblyCurrent, WindowedContext,
 };
+use imgui::{FontConfig, FontSource};
 use imgui_winit_support::WinitPlatform;
 
 use crate::renderer::Renderer;
@@ -41,7 +42,7 @@ impl Window {
             glow::Context::from_loader_function(|s| window_context.get_proc_address(s) as *const _);
 
         let mut imgui = imgui::Context::create();
-        let renderer = Renderer::init(&gl_context, &mut imgui).unwrap();
+        imgui.set_ini_filename(None);
 
         let mut platform = WinitPlatform::init(&mut imgui);
         {
@@ -52,6 +53,20 @@ impl Window {
                 imgui_winit_support::HiDpiMode::Rounded,
             );
         }
+
+        let hidpi_factor = platform.hidpi_factor();
+        let font_size = (16.0 * hidpi_factor) as f32;
+        imgui.fonts().add_font(&[FontSource::TtfData {
+            data: include_bytes!("../assets/fonts/Roboto-Regular.ttf"),
+            size_pixels: font_size,
+            config: Some(FontConfig {
+                ..FontConfig::default()
+            }),
+        }]);
+
+        imgui.io_mut().font_global_scale = (1.0 / hidpi_factor) as f32;
+
+        let renderer = Renderer::init(&gl_context, &mut imgui).unwrap();
 
         Ok(Window {
             renderer,
@@ -95,10 +110,10 @@ impl Window {
                     window.request_redraw();
                 }
                 Event::RedrawRequested(_) => unsafe {
-                    gl_context.clear(glow::COLOR_BUFFER_BIT);
-                    gl_context.draw_arrays(glow::TRIANGLES, 0, 6);
-
                     let window = window_context.window();
+
+                    gl_context.clear(glow::COLOR_BUFFER_BIT);
+                    gl_context.clear_color(0.2, 0.2, 0.2, 1.0);
 
                     {
                         let frame = imgui.frame();
@@ -112,6 +127,7 @@ impl Window {
                         if !run {
                             *control_flow = ControlFlow::Exit;
                         }
+
 
                         platform.prepare_render(&frame, window);
                         let draw_data = frame.render();
